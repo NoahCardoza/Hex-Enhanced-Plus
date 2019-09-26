@@ -1,5 +1,7 @@
 # HexEnhanced+
-HexEnhanced+ is a userscript for [Hacker Experience 1](https://legacy.hackerexperience.com/). It is developed by [MacHacker](https://https://github.com/NoahCardoza), Johannes (GeneralFranklin) and Jasperr.
+HexEnhanced+ was a userscript originally created for [Hacker Experience 1](https://legacy.hackerexperience.com/). It was developed by [MacHacker](https://https://github.com/NoahCardoza), Johannes (GeneralFranklin) and Jasperr.
+
+Now it will be embeded straight into RE-Revived (name pending), a copy of the original Hacker Experience.
 
 # Features
 HexEnhanced+ contains several bugfixes but mostly adds more features.
@@ -26,10 +28,3 @@ HexEnhanced+ contains several bugfixes but mostly adds more features.
 - Forum features
   * Fixes the "The team" link
   * Adds infinite scrolling to topics
-
-# Installation instructions
-HexEnhanced+ is a userscript, so you will need a userscript manager. The most used ones are [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) for Chrome and [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/) for Firefox.
-
-Once you got a userscript manager installed, click [here](https://github.com/Johannes2306/Hex-Enhanced-Plus/raw/master/HexEnhancedPlus.user.js) to open the installation window.
-
-If you have Automatic Updating enabled in your userscript manager you will automatically get the latest updates. If you don't have this enabled, you will have to click on the installation link every time you want to update it. This will take you to your userscript manager where you will have the ability to update it manually.
