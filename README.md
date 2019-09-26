@@ -1,5 +1,5 @@
 # HexEnhanced+
-HexEnhanced+ was a userscript originally created for [Hacker Experience 1](https://legacy.hackerexperience.com/). It was developed by [MacHacker](https://https://github.com/NoahCardoza), Johannes (GeneralFranklin) and Jasperr.
+HexEnhanced+ was a userscript originally created for [Hacker Experience 1](https://legacy.hackerexperience.com/). It was developed by [MacHacker](https://github.com/NoahCardoza), [Johannes](https://github.com/Johannes2306) (GeneralFranklin) and [Jasperr](https://github.com/jmerle).
 
 Now it will be embeded straight into RE-Revived (name pending), a copy of the original Hacker Experience.
 
