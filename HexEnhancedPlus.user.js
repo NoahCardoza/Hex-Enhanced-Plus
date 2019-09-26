@@ -10,6 +10,12 @@
 // @grant        none
 // ==/UserScript==
 
+const GM_info = {
+    script : {
+        version: '1.1.4'
+    }
+}
+
 if (window.location.hostname.toLowerCase().match('forum')) {
     var script = document.createElement('script');
     script.src = 'https://code.jquery.com/jquery-3.1.1.min.js';
@@ -23,6 +29,7 @@ function loadScript() {
     // GLOBAL VARIABLES \\
     var currentWebsiteURL = window.location.protocol + "//" + window.location.hostname;
     var isSideBarSmall = false;
+    var gritterIsLoading = false;
     var gritterLoaded = false;
 
     // PROTOTYPES \\
@@ -134,7 +141,7 @@ function loadScript() {
     }
 
     function gritterNotify(opts) {
-        if (!gritterLoaded) {
+        if (!gritterLoaded || !gritterIsLoading) {
             $('<link rel="stylesheet" type="text/css" href="css/jquery.gritter.css">').appendTo("head");
             $.getScript("js/jquery.gritter.min.js", function() {
                 $.gritter.add({
@@ -143,10 +150,17 @@ function loadScript() {
                     image: opts.img,
                     sticky: opts.sticky
                 });
+                gritterLoaded = true;
+                gritterIsLoading = false;
             });
-            gritterLoaded = true;
+            gritterIsLoading = true;
             return;
         }
+
+        if (!gritterLoaded && gritterIsLoading) {
+            return setTimeout(gritterNotify.bind(null, opts), 500)
+        }
+
         $.gritter.add({
             title: opts.title,
             text: opts.text,
@@ -327,7 +341,7 @@ function loadScript() {
     };
     functions.btc.sidebar = {};
     functions.btc.sidebar.add = function(){
-        $('<li id="menu-btc"><a href="internet?ip=7.28.21.234"><i class="fa fa-inverse fa-bitcoin"></i> <span>BTC Market</span></a></li>').insertAfter($("#menu-internet"));
+        $('<li id="menu-btc"><a href="internet?redirect=btc"><i class="fab fa-inverse fa-bitcoin"></i> <span>BTC Market</span></a></li>').insertAfter($("#menu-internet"));
     };
 
     functions.btc.sidebar.live = function() {
@@ -1535,7 +1549,7 @@ function loadScript() {
 
         $('#header > h1 > a').css('display', 'none');
         $('#header > h1').css('background', 'none');
-        $('#content').css('margin-left', '40px');
+        $('#content').css('margin-left', '45px');
         $('#content').css('z-index', '500');
         $('#side-bar-toggle-chevron').toggleClass('rotated-chevron');
     };
@@ -1730,13 +1744,7 @@ function loadScript() {
         var check = function() {
             $.get(currentWebsiteURL + '/processes?page=all', function(data) {
                 $('.list li').each(function() {
-                    var classes = $('div:first-child', this).attr('class').split(' ');
-                    var processID;
-                    classes.forEach(function(className) {
-                        if (className.startsWith('processBlock')) {
-                            processID = className.substring(12);
-                        }
-                    });
+                    var processID = $('div[id^=process]', this).attr('id').substr(7)
                     if ($.inArray(processID, triggeredIDs) === -1) {
                         var progress = parseInt($('.percent', this).text().slice(0, -1));
                         if (progress === 100) {
