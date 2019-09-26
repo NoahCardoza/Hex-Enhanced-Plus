@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HexEnhanced+
 // @namespace    HexEnhancedPlus
-// @version      1.0.5
+// @version      1.1.4
 // @description  HexEnhanced+ adds a load of features to Hacker Experience 1 and fixes some bugs aswell.
 // @author       MacHacker, Jasperr & Johannes
 // @match        https://*.hackerexperience.com/*
@@ -203,7 +203,7 @@ function loadScript() {
             friendlies[1][id] = datapoint;
             localStorage.setItem("friendlies", JSON.stringify(friendlies));
             gritterNotify({
-                title: "Sucsess!",
+                title: "Success!",
                 text: 'The IP <b><a href="internet?ip='+datapoint.ip+'">['+datapoint.ip+"]</a></b>  has been linked to <b>"+datapoint.name+"</b> ",
                 image: "",
                 sticky: false
@@ -214,6 +214,8 @@ function loadScript() {
             var del_id = this.id;
             $('#'+del_id).remove();
             friendlies[1][del_id] = null;
+            friendlies[1] = friendlies[1].filter(function(value) { return value !== null; });
+            friendlies[0] = friendlies[1].length;
             localStorage.setItem("friendlies", JSON.stringify(friendlies));
         });
         $(".active").attr("class", "link");
@@ -325,10 +327,11 @@ function loadScript() {
     };
     functions.btc.sidebar = {};
     functions.btc.sidebar.add = function(){
-        $('<li id="menu-btc"><a href="internet?ip=99.232.28.232"><i class="fa fa-inverse fa-bitcoin"></i> <span>BTC Market</span><span class="label"></span></a></li>').insertAfter($("#menu-internet"));
+        $('<li id="menu-btc"><a href="internet?ip=7.28.21.234"><i class="fa fa-inverse fa-bitcoin"></i> <span>BTC Market</span></a></li>').insertAfter($("#menu-internet"));
     };
 
     functions.btc.sidebar.live = function() {
+        $('#menu-btc > a').append('<span class="label"></span>');
         var run = function(){
             r = $.ajax({
                 url:"finances",
@@ -707,7 +710,7 @@ function loadScript() {
             $(".widget-content.padding.noborder").prepend('<span class="delete_selected btn btn-danger mission-abort">Delete Selected</span>');
         }
         if (!$("#select").length){
-            $(".widget-content.padding.noborder").prepend('<select style="margin:10px;"id="select"><option value="false">None</option><option value="Unknown">Unknown</option><option value="FBI">FBI</option><option value="Safenet">Safenet</option><option value="Social Clan">Social Clan</option><option value="false">Badge Advisor</option><option value="false">Social</option></select>');
+            $(".widget-content.padding.noborder").prepend('<select style="margin:10px;"id="select"><option value="false">None</option><option value="Unknown">Unknown</option><option value="FBI">FBI</option><option value="Safenet">Safenet</option><option value="Social Clan">Social Clan</option><option value="Badge Advisor">Badge Advisor</option><option value="Social">Social</option></select>');
         }
 
         $("#select").bind().change(function(){
@@ -1068,7 +1071,7 @@ function loadScript() {
 
     functions.hacked_database.update = function(){
         if (localStorage.getItem("DB") === null){
-            alert("You need to scan you Database before you can view these features.");
+            alert("You need to scan your Database before you can view these features.");
             return;
         }
         var slaves = JSON.parse(localStorage.getItem("DB"));
@@ -1197,7 +1200,7 @@ function loadScript() {
 
     functions.hacked_database.exportUnusedIPs = function() {
         if (localStorage.getItem('DB') === null) {
-            alert("You need to scan you Database before you can use this feature.");
+            alert("You need to scan your Database before you can use this feature.");
             return;
         }
         var db = JSON.parse(localStorage.getItem('DB'));
@@ -1245,81 +1248,100 @@ function loadScript() {
         var modforce = {};
         modforce.administrators = {};
         modforce.globalModerators = {};
+        modforce.communityManagers = {};
         modforce.moderators = {};
 
-        // Querying to get all users in the usergroup 'Community Manager & Moderators'
-        $.get('https://forum.hackerexperience.com/memberlist.php?sk=c&sd=a&username=%2A&icq=&aim=&yahoo=&msn=&jabber=&search_group_id=8&joined_select=lt&count_select=eq&joined=&count=&mode=searchuser', function(data) {
-            $('table#memberlist > tbody > tr', data).each(function() {
+        var getTableData = function(tableElement) {
+            var out = {};
+            $('tbody > tr', tableElement).each(function() {
                 if ($('td:nth-child(1) > a.username-coloured', this).length) {
                     var name = $('td:nth-child(1) > a.username-coloured', this).text();
                     var link = $('td:nth-child(1) > a.username-coloured', this).prop('href');
+                    var color = $('td:nth-child(1) > a.username-coloured', this).css('color');
                     var posts = parseInt($('td.posts > a', this).text());
                     var postsLink = $('td.posts > a', this).prop('href');
                     var websiteText = $('td.info a:nth-child(1)', this).text() || null; 
                     var websiteUrl = $('td.info a:nth-child(1)', this).prop('href') || null;
                     var location = $('td.info > div:not(:has(a))', this).text() || null;
                     var joined = $('td:last', this).text();
-                    modforce.moderators[name] = {};
-                    modforce.moderators[name]['link'] = link;
-                    modforce.moderators[name]['posts'] = posts;
-                    modforce.moderators[name]['postsLink'] = postsLink;
-                    modforce.moderators[name]['websiteText'] = websiteText;
-                    modforce.moderators[name]['websiteUrl'] = websiteUrl;
-                    modforce.moderators[name]['location'] = location;
-                    modforce.moderators[name]['joined'] = joined;
+                    out[name] = {};
+                    out[name]['link'] = link;
+                    out[name]['color'] = color;
+                    out[name]['posts'] = posts;
+                    out[name]['postsLink'] = postsLink;
+                    out[name]['websiteText'] = websiteText;
+                    out[name]['websiteUrl'] = websiteUrl;
+                    out[name]['location'] = location;
+                    out[name]['joined'] = joined;
                 }
             });
-            // Querying to get all users in the usergroup 'Global Moderators'
-            $.get('https://forum.hackerexperience.com/memberlist.php?sk=c&sd=a&username=%2A&icq=&aim=&yahoo=&msn=&jabber=&search_group_id=4&joined_select=lt&count_select=eq&joined=&count=&mode=searchuser', function(data) {
-                $('table#memberlist > tbody > tr', data).each(function() {
-                    if ($('td:nth-child(1) > a.username-coloured', this).length) {
-                        var name = $('td:nth-child(1) > a.username-coloured', this).text();
-                        var link = $('td:nth-child(1) > a.username-coloured', this).prop('href');
-                        var posts = parseInt($('td.posts > a', this).text());
-                        var postsLink = $('td.posts > a', this).prop('href');
-                        var websiteText = $('td.info a:nth-child(1)', this).text() || null; 
-                        var websiteUrl = $('td.info a:nth-child(1)', this).prop('href') || null;
-                        var location = $('td.info > div:not(:has(a))', this).text() || null;
-                        var joined = $('td:last', this).text();
-                        if (name in modforce.moderators) {
-                            delete modforce.moderators[name];
+            return out;
+        };
+
+        var printCategoryData = function(obj, title) {
+            tr = '';
+            $.each(obj, function(name, properties) {
+                tr += '<tr class="bg1">';
+                    tr += '<td><span class="rank-img">' + title + '</span><a href="' + properties['link'] + '" style="color: ' + properties['color'] + ';" class="username-coloured">' + name + '</a></td>';
+                    tr += '<td class="posts"><a href="' + properties['postsLink'] + '" title="Search user’s posts">' + properties['posts'] + '</a></td>';
+                    if (properties['websiteText'] != null || properties['location'] != null) {
+                        if (!properties['websiteText'] != null && properties['location'] != null) {
+                            tr += '<td class="info">';
+                                tr += '<div>';
+                                    tr += properties['location'];
+                                tr += '</div>';
+                            tr += '</td>';
+                        } else if (properties['websiteText'] != null && !properties['location'] != null) {
+                            tr += '<td class="info">';
+                                tr += '<div>';
+                                    tr += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
+                                tr += '</div>';
+                            tr += '</td>';
+                        } else {
+                            tr += '<td class="info">';
+                                tr += '<div>';
+                                    tr += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
+                                tr += '</div>';
+                                tr += '<div>';
+                                    tr += properties['location'];
+                                tr += '</div>';
+                            tr += '</td>';
                         }
-                        modforce.globalModerators[name] = {};
-                        modforce.globalModerators[name]['link'] = link;
-                        modforce.globalModerators[name]['posts'] = posts;
-                        modforce.globalModerators[name]['postsLink'] = postsLink;
-                        modforce.globalModerators[name]['websiteText'] = websiteText;
-                        modforce.globalModerators[name]['websiteUrl'] = websiteUrl;
-                        modforce.globalModerators[name]['location'] = location;
-                        modforce.globalModerators[name]['joined'] = joined;
+                    } else {
+                        tr += '<td class="info">&nbsp;</td>';
                     }
-                });
+                    tr += '<td>' + properties['joined'] + '</td>';
+                tr += '</tr>';
+            });
+            return tr;
+        };
+
+        // Querying to get all users in the usergroup 'Community Manager & Moderators'
+        $.post('https://forum.hackerexperience.com/memberlist.php?mode=group', {g: 8}, function(data) {
+            modforce.communityManagers = getTableData($('table:contains("Group leader")', data));
+            modforce.moderators = getTableData($('table:contains("Group members")', data));
+            // Querying to get all users in the usergroup 'Global Moderators'
+            $.post('https://forum.hackerexperience.com/memberlist.php?mode=group', {g: 4}, function(data) {
+                modforce.globalModerators = getTableData($('table:contains("Group members")', data));
                 // Querying to get all users in the usergroup 'Administrators'
-                $.get('https://forum.hackerexperience.com/memberlist.php?sk=c&sd=a&username=%2A&icq=&aim=&yahoo=&msn=&jabber=&search_group_id=5&joined_select=lt&count_select=eq&joined=&count=&mode=searchuser', function(data) {
-                    $('table#memberlist > tbody > tr', data).each(function() {
-                        if ($('td:nth-child(1) > a.username-coloured', this).length) {
-                            var name = $('td:nth-child(1) > a.username-coloured', this).text();
-                            var link = $('td:nth-child(1) > a.username-coloured', this).prop('href');
-                            var posts = parseInt($('td.posts > a', this).text());
-                            var postsLink = $('td.posts > a', this).prop('href');
-                            var websiteText = $('td.info a:nth-child(1)', this).text() || null; 
-                            var websiteUrl = $('td.info a:nth-child(1)', this).prop('href') || null;
-                            var location = $('td.info > div:not(:has(a))', this).text() || null;
-                            var joined = $('td:last', this).text();
-                            if (name in modforce.moderators) {
-                                delete modforce.moderators[name];
-                            }
-                            if (name in modforce.globalModerators) {
-                                delete modforce.globalModerators[name];
-                            }
-                            modforce.administrators[name] = {};
-                            modforce.administrators[name]['link'] = link;
-                            modforce.administrators[name]['posts'] = posts;
-                            modforce.administrators[name]['postsLink'] = postsLink;
-                            modforce.administrators[name]['websiteText'] = websiteText;
-                            modforce.administrators[name]['websiteUrl'] = websiteUrl;
-                            modforce.administrators[name]['location'] = location;
-                            modforce.administrators[name]['joined'] = joined;
+                $.post('https://forum.hackerexperience.com/memberlist.php?mode=group', {g: 5}, function(data) {
+                    modforce.administrators = getTableData($('table:contains("Group leader")', data));
+
+                    $.each(modforce.moderators, function(key, value) {
+                        if (modforce.communityManagers.hasOwnProperty(key) || modforce.globalModerators.hasOwnProperty(key) || modforce.administrators.hasOwnProperty(key)) {
+                            delete modforce.moderators[key];
+                        }
+                    });
+
+                    $.each(modforce.communityManagers, function(key, value) {
+                        if (modforce.globalModerators.hasOwnProperty(key) || modforce.administrators.hasOwnProperty(key)) {
+                            delete modforce.communityManagers[key];
+                        }
+                    });
+
+                    $.each(modforce.globalModerators, function(key, value) {
+                        if (modforce.administrators.hasOwnProperty(key)) {
+                            delete modforce.globalModerators[key];
                         }
                     });
 
@@ -1337,107 +1359,13 @@ function loadScript() {
                                         table += '</tr>';
                                     table += '</thead>';
                                     table += '<tbody>';
-                                        $.each(modforce.administrators, function(name, properties) {
-                                            table += '<tr class="bg1">';
-                                                table += '<td><span class="rank-img">Site Admin</span><a href="' + properties['link'] + '" style="color: #AA0000;" class="username-coloured">' + name + '</a></td>';
-                                                table += '<td class="posts"><a href="' + properties['postsLink'] + '" title="Search user’s posts">' + properties['posts'] + '</a></td>';
-                                                if (properties['websiteText'] != null || properties['location'] != null) {
-                                                    if (!properties['websiteText'] != null && properties['location'] != null) {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += properties['location'];
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    } else if (properties['websiteText'] != null && !properties['location'] != null) {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    } else {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
-                                                            table += '</div>';
-                                                            table += '<div>';
-                                                                table += properties['location'];
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    }
-                                                } else {
-                                                    table += '<td class="info">&nbsp;</td>';
-                                                }
-                                                table += '<td>' + properties['joined'] + '</td>';
-                                            table += '</tr>';
-                                        });
+                                        table += printCategoryData(modforce.administrators, 'Site Admin');
                                         table += '<tr></tr>';
-                                        $.each(modforce.globalModerators, function(name, properties) {
-                                            table += '<tr class="bg1">';
-                                                table += '<td><span class="rank-img">Global Moderator</span><a href="' + properties['link'] + '" style="color: #00AA00;" class="username-coloured">' + name + '</a></td>';
-                                                table += '<td class="posts"><a href="' + properties['postsLink'] + '" title="Search user’s posts">' + properties['posts'] + '</a></td>';
-                                                if (properties['websiteText'] != null || properties['location'] != null) {
-                                                    if (!properties['websiteText'] != null && properties['location'] != null) {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += properties['location'];
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    } else if (properties['websiteText'] != null && !properties['location'] != null) {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    } else {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
-                                                            table += '</div>';
-                                                            table += '<div>';
-                                                                table += properties['location'];
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    }
-                                                } else {
-                                                    table += '<td class="info">&nbsp;</td>';
-                                                }
-                                                table += '<td>' + properties['joined'] + '</td>';
-                                            table += '</tr>';
-                                        });
+                                        table += printCategoryData(modforce.globalModerators, 'Global Moderator');
                                         table += '<tr></tr>';
-                                        $.each(modforce.moderators, function(name, properties) {
-                                            table += '<tr class="bg1">';
-                                                table += '<td><span class="rank-img">Moderator</span><a href="' + properties['link'] + '" style="color: #009900;" class="username-coloured">' + name + '</a></td>';
-                                                table += '<td class="posts"><a href="' + properties['postsLink'] + '" title="Search user’s posts">' + properties['posts'] + '</a></td>';
-                                                if (properties['websiteText'] != null || properties['location'] != null) {
-                                                    if (!properties['websiteText'] != null && properties['location'] != null) {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += properties['location'];
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    } else if (properties['websiteText'] != null && !properties['location'] != null) {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    } else {
-                                                        table += '<td class="info">';
-                                                            table += '<div>';
-                                                                table += '<a href="' + properties['websiteUrl'] + '" title="Visit website: ' + properties['websiteUrl'] + '">' + properties['websiteText'] + '</a>';
-                                                            table += '</div>';
-                                                            table += '<div>';
-                                                                table += properties['location'];
-                                                            table += '</div>';
-                                                        table += '</td>';
-                                                    }
-                                                } else {
-                                                    table += '<td class="info">&nbsp;</td>';
-                                                }
-                                                table += '<td>' + properties['joined'] + '</td>';
-                                            table += '</tr>';
-                                        });
+                                        table += printCategoryData(modforce.communityManagers, 'Community Manager');
+                                        table += '<tr></tr>';
+                                        table += printCategoryData(modforce.moderators, 'Moderator');
                                     table += '</tbody>';
                                 table += '</table>';
                                 table +='<div class="block-footer"></div>';
@@ -1638,6 +1566,126 @@ function loadScript() {
 
     // GLOBAL \\
     functions.global = {};
+    functions.global.addSettings = function() {
+        var modal = '<div class="fade modal" role="dialog" id="hexEnhancedPlusSettingsModal" tabindex="-1">';
+            modal += '<div class="modal-dialog" role="document">';
+                modal += '<div class="modal-content">';
+                    modal += '<div class="modal-header">';
+                        modal += '<button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+                        modal += '<h4 class="modal-title">HexEnhanced+ Settings</h4>';
+                    modal += '</div>';
+                    modal += '<form id="hexEnhancedPlusSettingsForm">';
+                        modal += '<div class="modal-body">';
+                            modal += '<div class="widget-box">';
+                                modal += '<div class="widget-title">';
+                                    modal += '<h5>Sidebar settings</h5>';
+                                modal += '</div>';
+                                modal += '<div class="widget-content">';
+                                    modal += '<label><input type="checkbox" id="disable-sidebar-btc-live"> Remove the amount of BTC updated live in the sidebar.</label>';
+                                    modal += '<label><input type="checkbox" id="disable-sidebar-btc"> Remove BTC Market link from sidebar (also removes the live amount of BTC).</label>';
+                                    modal += '<label><input type="checkbox" id="disable-sidebar-friendlies"> Remove Friendly IP\'s link from sidebar.</label>';
+                                    modal += '<label><input type="checkbox" id="disable-sidebar-toggle"> Remove sidebar toggle link from sidebar.</label>';
+                                modal += '</div>';
+                            modal += '</div>';
+                            modal += '<div class="widget-box">';
+                                modal += '<div class="widget-title">';
+                                    modal += '<h5>BTC settings</h5>';
+                                modal += '</div>';
+                                modal += '<div class="widget-content">';
+                                    modal += '<label><input type="checkbox" id="disable-btc-modal"> Disable the improved BTC modals.</label>';
+                                    modal += '<label><input type="checkbox" id="disable-btc-calculator"> Remove the BTC calculator from the BTC Market.</label>';
+                                    modal += '<label><input type="checkbox" id="disable-btc-chart"> Remove the BTC history chart from the BTC Market.</label>';
+                                modal += '</div>';
+                            modal += '</div>';
+                            modal += '<div class="widget-box">';
+                                modal += '<div class="widget-title">';
+                                    modal += '<h5>Mail settings</h5>';
+                                modal += '</div>';
+                                modal += '<div class="widget-content">';
+                                    modal += '<label><input type="checkbox" id="disable-mass-mail"> Disable mass mailing.</label>';
+                                    modal += '<label><input type="checkbox" id="disable-mail-mass-delete"> Disable the mass mail deleting feature.</label>';
+                                modal += '</div>';
+                            modal += '</div>';
+                            modal += '<div class="widget-box">';
+                                modal += '<div class="widget-title">';
+                                    modal += '<h5>Process settings</h5>';
+                                modal += '</div>';
+                                modal += '<div class="widget-content">';
+                                    modal += '<label><input type="checkbox" id="disable-process-guard"> Disable process guard.</label>';
+                                    modal += '<label><input type="checkbox" id="disable-process-guard-sound"> Disable the process guard\'s sound.</label>';
+                                modal += '</div>';
+                            modal += '</div>';
+                            modal += '<div class="widget-box">';
+                                modal += '<div class="widget-title">';
+                                    modal += '<h5>Other settings</h5>';
+                                modal += '</div>';
+                                modal += '<div class="widget-content">';
+                                    modal += '<label><input type="checkbox" id="disable-university-calculator"> Disable the university calculator.</label>';
+                                modal += '</div>';
+                            modal += '</div>';
+                        modal += '</div>';
+                        modal += '<div class="modal-footer">';
+                            modal += '<button class="btn btn-default" type="button" data-dismiss="modal">Close</button>';
+                            modal += '<button class="btn btn-primary" type="submit">Save</button>';
+                        modal += '</div>';
+                    modal += '</form>';
+                modal += '</div>';
+            modal += '</div>';
+        modal += '</div>';
+        $('body').append(modal);
+        $('#hexEnhancedPlusSettingsModal .widget-box').css({
+            'margin-top': '5px',
+            'margin-bottom': '5px'
+        });
+        $('#hexEnhancedPlusSettingsForm label').css('cursor', 'pointer');
+        $('#hexEnhancedPlusSettingsForm input[type="checkbox"]').css({
+            'float': 'left',
+            'margin-right': '5px'
+        });
+        $('#breadcrumb.center .center').append(' (<a href="javascript:void(0)" id="open-settings">settings</a>)');
+        $('#open-settings').prev().css({
+            'background-image': 'none',
+            'padding-right': '10px'
+        });
+        $('#open-settings').css({
+            'padding': '0',
+            'font-size': '14px',
+            'color': '#005580'
+        });
+        $('#open-settings').hover(function() {
+            $(this).css('text-decoration', 'underline');
+        }, function() {
+            $(this).css('text-decoration', 'none');
+        });
+        $('#open-settings').on('click', function() {
+            $('#hexEnhancedPlusSettingsModal').modal('show');
+            $('#hexEnhancedPlusSettingsForm input[type="checkbox"]').each(function() {
+                if (localStorage.getItem($(this).attr('id')) === 'true') {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            });
+        });
+        $('#hexEnhancedPlusSettingsForm').submit(function(event) {
+            event.preventDefault();
+            $('#hexEnhancedPlusSettingsForm input[type="checkbox"]').each(function() {
+                if ($(this).is(':checked')) {
+                    localStorage.setItem($(this).attr('id'), 'true');
+                } else {
+                    localStorage.removeItem($(this).attr('id'));
+                }
+            });
+            $('#hexEnhancedPlusSettingsModal').modal('hide');
+            gritterNotify({
+                title: 'HexEnhanced+ Settings',
+                text: 'Succesfully saved your settings!',
+                image: '',
+                sticky: false
+            });
+        });
+    };
+
     functions.global.addCreditsGame = function() {
         $('#breadcrumb.center .center').append('You are using HexEnhanced+ v' + GM_info.script.version);
     };
@@ -1649,11 +1697,11 @@ function loadScript() {
      // ISP \\
      functions.isp = {};
      functions.isp.guard = function(){
-         var ISP = $('a[href*="195.153.108.51"]');
+         var ISP = $('a[href*="1.158.201.174"]');
          ISP.attr("href", "#");
          ISP.on().click(function(){
             if (confirm("This may change your IP!") === true){
-                window.location.href = "/internet?ip=195.153.108.51";
+                window.location.href = "/internet?ip=1.158.201.174";
             }
          });
      };
@@ -1674,6 +1722,62 @@ function loadScript() {
             $("title").text(str);
         });
      };
+
+     var processGuardIsSoundPlaying = false;
+     functions.processes.guardProcesses = function() {
+        var triggeredIDs = JSON.parse(localStorage.getItem('process-guard-triggered-ids')) || [];
+
+        var check = function() {
+            $.get(currentWebsiteURL + '/processes?page=all', function(data) {
+                $('.list li').each(function() {
+                    var classes = $('div:first-child', this).attr('class').split(' ');
+                    var processID;
+                    classes.forEach(function(className) {
+                        if (className.startsWith('processBlock')) {
+                            processID = className.substring(12);
+                        }
+                    });
+                    if ($.inArray(processID, triggeredIDs) === -1) {
+                        var progress = parseInt($('.percent', this).text().slice(0, -1));
+                        if (progress === 100) {
+                            triggeredIDs.push(processID);
+                            var processDescription = $('.proc-desc', this).text();
+                            if (localStorage.getItem('disable-process-guard-sound') !== 'true') {
+                                if (!processGuardIsSoundPlaying) {
+                                    var context = new AudioContext;
+                                    var oscillator = context.createOscillator();
+                                    var gain = context.createGain();
+
+                                    oscillator.frequency.value = 500;
+                                    oscillator.connect(gain);
+                                    gain.gain.value = 0.75;
+                                    gain.connect(context.destination);
+                                    processGuardIsSoundPlaying = true;
+                                    oscillator.start(0);
+                                    setTimeout(oscillator.stop.bind(oscillator), 100);
+                                    setTimeout(() => { processGuardIsSoundPlaying = false; }, 100);
+                                }
+                            }
+                            gritterNotify({
+                                title: 'HexEnhanced+ Process Guard',
+                                text: 'The process with the description "<b>' + processDescription + '</b>" has finished!',
+                                image: '',
+                                sticky: false
+                            });
+                        }
+                    }
+                });
+            });
+
+            localStorage.setItem('process-guard-triggered-ids', JSON.stringify(triggeredIDs));
+
+            if (localStorage.getItem('disable-process-guard') !== 'true') {
+                setTimeout(check, 10000);
+            }
+        }
+
+        setTimeout(check, 10000);
+     }
 
 
     function getCookie(cname) {
@@ -1730,18 +1834,28 @@ function loadScript() {
             if ($('a[href="logout"]').length) {
                 // User is logged in
                 functions.isp.guard();
-                functions.btc.sidebar.add();
-                functions.btc.sidebar.live();
-                functions.clan.friendly_ips.add_sidebar();
+                if (localStorage.getItem('disable-sidebar-btc') !== 'true') {
+                    functions.btc.sidebar.add();
+                    if (localStorage.getItem('disable-sidebar-btc-live') !== 'true') {
+                        functions.btc.sidebar.live();
+                    }
+                }
+                if (localStorage.getItem('disable-sidebar-friendlies') !== 'true') {
+                    functions.clan.friendly_ips.add_sidebar();
+                }
                 functions.clan.friendly_ips.initiate_localhost();
                 functions.hacked_database.runaways.initiate_localhost();
+                if (localStorage.getItem('disable-process-guard') !== 'true') {
+                    functions.processes.guardProcesses();
+                }
                 functions.global.addCreditsGame();
+                functions.global.addSettings();
 
                 if (isOnPage('/software?page=external') || isOnPage('/software.php?page=external')) {
                     functions.bugfixes.fixXHDChart();
                 }
 
-                if (localStorage.getItem('hide-he2-ad') == 'true' && $('#he2').length) {
+                if (localStorage.getItem('hide-he2-ad') === 'true' && $('#he2').length) {
                     $('#he2').remove();
                 } else {
                     functions.ads.addHE2AdHideButton();
@@ -1751,14 +1865,17 @@ function loadScript() {
                     functions.bugfixes.fixTop7();
                 }
 
-                functions.sidebar.addSideBarToggle();
-
-                if (localStorage.getItem('side-bar-small') == 'true') {
-                    functions.sidebar.hideSideBar(false);
+                if (localStorage.getItem('disable-sidebar-toggle') !== 'true') {
+                    functions.sidebar.addSideBarToggle();
+                    if (localStorage.getItem('side-bar-small') === 'true') {
+                        functions.sidebar.hideSideBar(false);
+                    }
                 }
 
                 if (isOnPage('/mail?action=new') || isOnPage('/mail.php?action=new')) {
-                    functions.mail.addMassMailing();
+                    if (localStorage.getItem('disable-mass-mail') !== 'true') {
+                        functions.mail.addMassMailing();
+                    }
                 }
 
                 if (ifPageContains('Reason: Ilegal Transfer')) {
@@ -1766,9 +1883,15 @@ function loadScript() {
                 }
 
                 if (ifPageContains('Bitcoin Market') && ifPageContains('Bitcoin Actions')) {
-                    functions.btc.general.fixBTCModal();
-                    functions.btc.general.addBTCCalculator();
-                    functions.btc.general.addBTCChart();
+                    if (localStorage.getItem('disable-btc-modal') !== 'true') {
+                        functions.btc.general.fixBTCModal();
+                    }
+                    if (localStorage.getItem('disable-btc-calculator') !== 'true') {
+                        functions.btc.general.addBTCCalculator();
+                    }
+                    if (localStorage.getItem('disable-btc-chart') !== 'true') {
+                        functions.btc.general.addBTCChart();
+                    }
                 }
 
                 if ((pageDetails.search !== undefined && pageDetails.search.action !== undefined) || (pageDetails.search !== undefined && pageDetails.search.cmd !== undefined) || (pageDetails.search !== undefined && pageDetails.search.pid !== undefined)) {
@@ -1779,14 +1902,18 @@ function loadScript() {
                         functions.profile.msg();
                     }
                 } else if (pageDetails.path == "mail") {
-                    if (!pageDetails.search || pageDetails.search.action != "new" && !pageDetails.search.id){
-                        functions.mail.modal_setup();
-                        functions.mail.mail_opt();
+                    if (!pageDetails.search || pageDetails.search.action != "new" && !pageDetails.search.id) {
+                        if (localStorage.getItem('disable-mail-mass-delete') !== 'true') {
+                            functions.mail.modal_setup();
+                            functions.mail.mail_opt();
+                        }
                     }
                 } else if (pageDetails.path == "university") {
                     if (pageDetails.search !== undefined && pageDetails.search.id !== undefined){
-                        functions.university.getResearchVariables();
-                        functions.university.calculator.setup();
+                        if (localStorage.getItem('disable-university-calculator') !== 'true') {
+                            functions.university.getResearchVariables();
+                            functions.university.calculator.setup();
+                        }
                     }
                 } else if (pageDetails.path == "settings") {
                     functions.settings.passwordFix();
@@ -1800,7 +1927,7 @@ function loadScript() {
                     if (pageDetails.search !== undefined && pageDetails.search.view == "friendly") {
                         functions.clan.friendly_ips.main();
                     }
-                } else if (pageDetails.path == "list"){
+                } else if (pageDetails.path == "list") {
                     functions.hacked_database.runaways.setup_nav();
                     if (pageDetails.search === undefined || pageDetails.search.page !== undefined){
                         functions.hacked_database.setup_nav();
