@@ -1821,6 +1821,7 @@ function loadScript() {
     // FUNCTIONS : END \\
 
     $(document).ready(function() {
+        console.log("[+]Hex-Enhanced-Plus:(STATUS)->RUNNING")
         pageDetails = getPageDetails();
         if (window.location.hostname.toLowerCase().match('forum')) {
             // Forum functions
